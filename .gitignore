@@ -1,0 +1,20 @@
+# Compilación de Java
+*.class
+out/
+target/
+build/
+
+# Archivos generados por herramientas de compilación
+*.jar
+*.war
+
+# Configuración local de IntelliJ IDEA
+.idea/
+*.iml
+
+# Archivos temporales del sistema y del editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
