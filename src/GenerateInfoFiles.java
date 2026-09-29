@@ -123,6 +123,7 @@ public class GenerateInfoFiles {
     // ---------------------------------------------------------------
     // Generación de cie10.csv
     // ---------------------------------------------------------------
+    /** Reemplaza {@code data/cie10.csv} con el código y nombre de cada enfermedad. */
     public void generarArchivoCie10() throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARCHIVO_CIE10))) {
             for (Enfermedad e : enfermedades) {
@@ -135,6 +136,7 @@ public class GenerateInfoFiles {
     // ---------------------------------------------------------------
     // Generación de urgencias.txt
     // ---------------------------------------------------------------
+    /** Genera 300 atenciones con pacientes, diagnósticos, triage y fechas simuladas. */
     public void generarArchivoUrgencias() throws IOException {
         // Peso total para el sorteo ponderado de enfermedades
         int pesoTotal = 0;
@@ -187,6 +189,7 @@ public class GenerateInfoFiles {
     }
 
     /** Sortea un código CIE-10 respetando los pesos de frecuencia. */
+    /** Selecciona un diagnóstico mediante sorteo proporcional a su peso. */
     private String elegirCie10Ponderado(int pesoTotal) {
         int sorteo = random.nextInt(pesoTotal);
         int acumulado = 0;
@@ -204,6 +207,7 @@ public class GenerateInfoFiles {
      * Genera un nivel de triage (1 a 5) con distribución realista:
      * pocos casos críticos (1) y una mayoría en niveles intermedios (3-4).
      */
+    /** Selecciona un nivel de triage del 1 al 5 usando una distribución ponderada. */
     private int generarTriagePonderado() {
         int[] pesosTriage = { 5, 15, 35, 30, 15 }; // índices 0..4 -> triage 1..5
         int total = 0;
@@ -221,6 +225,7 @@ public class GenerateInfoFiles {
     }
 
     /** Genera una edad con más peso en adultos y adultos mayores. */
+    /** Genera una edad entre 0 y 95, dando mayor peso a los grupos adultos. */
     private int generarEdad() {
         double p = random.nextDouble();
         if (p < 0.12)

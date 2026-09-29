@@ -1,6 +1,14 @@
 import java.util.Scanner;
 
+/**
+ * Punto de entrada alternativo del sistema.
+ *
+ * Presenta un menú inicial para escoger entre la interfaz gráfica y el modo
+ * consola. La lógica de generación se delega a {@link GenerateInfoFiles};
+ * esta clase solo coordina la navegación del usuario.
+ */
 public class Main {
+    /** Inicia el menú principal y dirige al modo seleccionado. */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         System.out.println("════════════════════════════════════════");
@@ -21,6 +29,7 @@ public class Main {
         sc.close();
     }
 
+    /** Muestra el menú CLI mientras el usuario no elija la opción de salida. */
     private static void menuConsola(Scanner scanner) {
         boolean salir = false;
         while (!salir) {
@@ -51,6 +60,7 @@ public class Main {
         }
     }
 
+    /** Crea la carpeta de datos y delega la generación de archivos al generador. */
     private static void generarArchivos() {
         try {
             new java.io.File("data").mkdirs();
