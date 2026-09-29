@@ -5,7 +5,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Módulo de consulta individual de paciente por nombre completo.
+ * Consulta el historial de un paciente a partir de las atenciones cargadas.
+ *
+ * La búsqueda ignora mayúsculas y minúsculas y acepta coincidencias parciales
+ * del nombre completo. El resultado se ordena cronológicamente y agrega un
+ * resumen de triage, diagnósticos y última atención.
  */
 public class ConsultaPaciente {
     private final LectorDatos datos;
@@ -16,6 +20,7 @@ public class ConsultaPaciente {
         this.atenciones = datos.getAtenciones();
     }
 
+    /** Genera el historial textual de las atenciones que coinciden con el nombre. */
     public String consultarHistorial(String nombreCompleto) {
         String busqueda = nombreCompleto.trim().toLowerCase();
 
@@ -80,7 +85,7 @@ public class ConsultaPaciente {
         return sb.toString();
     }
 
-    // Lista de pacientes únicos para sugerir en la interfaz
+    /** Devuelve nombres sin repetir para llenar el selector de la interfaz gráfica. */
     public List<String> listaPacientesUnicos() {
         return atenciones.stream()
             .map(Atencion::getNombreCompleto)

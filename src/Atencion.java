@@ -1,7 +1,11 @@
 import java.time.LocalDate;
 
 /**
- * Representa una atención de urgencias (una línea de urgencias.txt)
+ * Modelo inmutable de una atención de urgencias.
+ *
+ * Cada objeto representa una línea del archivo {@code data/urgencias.txt}.
+ * La clase únicamente conserva los datos de la atención y ofrece métodos de
+ * consulta; no realiza lecturas de archivos ni modifica la información.
  */
 public class Atencion {
     private final String nombre;
@@ -35,6 +39,4 @@ public class Atencion {
     public String getCie10() { return cie10; }
     public int getTriage() { return triage; }
     public LocalDate getFecha() { return fecha; }
-} 
-    
-
+}

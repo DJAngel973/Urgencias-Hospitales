@@ -9,16 +9,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lee los archivos generados por GenerateInfoFiles y los carga en memoria.
+ * Carga en memoria el diccionario CIE-10 y las atenciones del hospital.
+ *
+ * Usa rutas relativas a la carpeta desde la que se ejecuta el programa:
+ * {@code data/cie10.csv} contiene código y descripción, mientras que
+ * {@code data/urgencias.txt} contiene ocho campos separados por punto y coma.
  */
 public class LectorDatos {
     private final Map<String, String> diccionarioCIE10 = new LinkedHashMap<>();
     private final List<Atencion> atenciones = new ArrayList<>();
 
+    /** Carga ambos archivos y solo devuelve {@code true} si los dos pudieron leerse. */
     public boolean cargarDatos() {
         return cargarCIE10() && cargarUrgencias();
     }
 
+    /** Lee el diccionario y guarda sus códigos y nombres en un mapa ordenado. */
     private boolean cargarCIE10() {
         try (BufferedReader br = new BufferedReader(new FileReader("data/cie10.csv"))) {
             String linea;
@@ -35,6 +41,7 @@ public class LectorDatos {
         }
     }
 
+    /** Convierte cada línea válida del archivo de urgencias en un objeto {@link Atencion}. */
     private boolean cargarUrgencias() {
         DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
         try (BufferedReader br = new BufferedReader(new FileReader("data/urgencias.txt"))) {
@@ -60,9 +67,12 @@ public class LectorDatos {
         }
     }
 
+    /** Devuelve el diccionario cargado para que otros módulos traduzcan códigos. */
     public Map<String, String> getDiccionarioCIE10() { return diccionarioCIE10; }
+    /** Devuelve la lista de atenciones cargadas para análisis y consultas. */
     public List<Atencion> getAtenciones() { return atenciones; }
 
+    /** Busca la descripción de un código; si no existe, devuelve el propio código. */
     public String nombreEnfermedad(String codigo) {
         return diccionarioCIE10.getOrDefault(codigo, codigo);
     }

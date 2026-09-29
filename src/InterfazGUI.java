@@ -3,8 +3,11 @@ import java.awt.*;
 import java.io.IOException;
 
 /**
- * Interfaz gráfica principal del sistema (Swing).
- * Tiene 4 pestañas: Archivos, Análisis Epidemiológico, Consulta Paciente, Reporte.
+ * Ventana principal del sistema construida con Java Swing.
+ *
+ * Organiza el flujo en cuatro pestañas: generación de archivos, análisis,
+ * consulta individual y reporte completo. Primero se generan o cargan los
+ * archivos; después los módulos de análisis reutilizan los datos en memoria.
  */
 public class InterfazGUI extends JFrame {
     private LectorDatos datos;
@@ -16,6 +19,7 @@ public class InterfazGUI extends JFrame {
     private JComboBox<String> comboPacientes;
     private JLabel estadoLabel;
 
+    /** Construye la ventana, sus pestañas y la barra de estado. */
     public InterfazGUI() {
         setTitle("🏥 Sistema de Urgencias Hospital - Análisis Epidemiológico");
         setSize(900, 650);
@@ -37,6 +41,7 @@ public class InterfazGUI extends JFrame {
     }
 
     // ───────── Pestaña 1: Archivos ─────────
+    /** Construye la pestaña que genera los dos archivos de entrada. */
     private JPanel panelArchivos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -57,9 +62,13 @@ public class InterfazGUI extends JFrame {
 
         JButton btnGenerar = new JButton("🔄 Generar Archivos");
         btnGenerar.setFont(new Font("Arial", Font.BOLD, 14));
+        // Una lambda permite definir directamente la acción que se ejecuta
+        // cuando el usuario hace clic, sin crear una clase ActionListener aparte.
         btnGenerar.addActionListener(e -> {
+            // El bloque se ejecuta después del clic, no durante la construcción de la ventana.
             try {
                 GenerateInfoFiles gen = new GenerateInfoFiles();
+                // mkdirs() crea data si no existe; si ya existe, no elimina su contenido.
                 new java.io.File("data").mkdirs();
                 gen.generarArchivoCie10();
                 gen.generarArchivoUrgencias();
@@ -77,6 +86,7 @@ public class InterfazGUI extends JFrame {
     }
 
     // ───────── Pestaña 2: Análisis Epidemiológico ─────────
+    /** Construye botones y área de resultados para los análisis epidemiológicos. */
     private JPanel panelAnalisis() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -121,8 +131,11 @@ public class InterfazGUI extends JFrame {
         panel.add(new JScrollPane(areaResultados), BorderLayout.CENTER);
 
         // Acciones de botones
+        // La lambda recibe el evento e y llama al método que carga los archivos.
         btnCargar.addActionListener(e -> cargarDatos());
 
+        // Supplier<String> representa una acción sin parámetros que devuelve un String.
+        // La lambda se guarda como una instrucción pendiente y se ejecuta al hacer clic.
         btnEnfFrec.addActionListener(e -> ejecutarAnalisis(() -> analizador.enfermedadesMasFrecuentes(10)));
         btnTriage.addActionListener(e -> ejecutarAnalisis(() -> analizador.distribucionPorTriage()));
         btnEnfTriage.addActionListener(e -> ejecutarAnalisis(() -> analizador.enfermedadesPorTriage(3)));
@@ -139,6 +152,7 @@ public class InterfazGUI extends JFrame {
     }
 
     // ───────── Pestaña 3: Consultar Paciente ─────────
+    /** Construye el selector de pacientes y el área de historial individual. */
     private JPanel panelConsulta() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -162,9 +176,11 @@ public class InterfazGUI extends JFrame {
         panel.add(new JScrollPane(areaPaciente), BorderLayout.CENTER);
 
         JButton btnCargarPacientes = new JButton("📥 Cargar lista de pacientes");
+        // Primero se cargan los datos; solo si el resultado es true se llena el combo.
         btnCargarPacientes.addActionListener(e -> {
             if (cargarDatos()) {
                 comboPacientes.removeAllItems();
+                // El for-each recorre cada nombre único y lo agrega como una opción.
                 for (String p : consultaPaciente.listaPacientesUnicos()) {
                     comboPacientes.addItem(p);
                 }
@@ -174,12 +190,14 @@ public class InterfazGUI extends JFrame {
         panel.add(btnCargarPacientes, BorderLayout.SOUTH);
 
         btnBuscar.addActionListener(e -> {
+            // No se permite consultar antes de cargar el objeto analizador y sus datos.
             if (analizador == null) {
                 JOptionPane.showMessageDialog(this, "Primero cargue los datos.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             String nombre = (String) comboPacientes.getSelectedItem();
+            // Se validan dos cosas: que exista una selección y que no sea texto vacío.
             if (nombre != null && !nombre.trim().isEmpty()) {
                 areaPaciente.setText(consultaPaciente.consultarHistorial(nombre));
                 areaPaciente.setCaretPosition(0);
@@ -190,6 +208,7 @@ public class InterfazGUI extends JFrame {
     }
 
     // ───────── Pestaña 4: Reporte Completo ─────────
+    /** Construye la pestaña que presenta el reporte combinado. */
     private JPanel panelReporte() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -202,6 +221,7 @@ public class InterfazGUI extends JFrame {
         JButton btnGenerarReporte = new JButton("📄 Generar Reporte Epidemiológico Completo");
         btnGenerarReporte.setFont(new Font("Arial", Font.BOLD, 14));
         btnGenerarReporte.addActionListener(e -> {
+            // cargarDatos() funciona como condición: si falla, no se intenta generar el reporte.
             if (cargarDatos()) {
                 areaReporte.setText(analizador.reporteCompleto());
                 areaReporte.setCaretPosition(0);
@@ -213,6 +233,13 @@ public class InterfazGUI extends JFrame {
     }
 
     // ───────── Métodos auxiliares ─────────
+    /**
+     * Carga archivos y crea los servicios que dependen de esas atenciones.
+     *
+     * Se usa un valor booleano porque la interfaz necesita saber si puede
+     * continuar: {@code true} significa que los dos archivos fueron leídos;
+     * {@code false} detiene la operación y muestra un mensaje al usuario.
+     */
     private boolean cargarDatos() {
         datos = new LectorDatos();
         if (!datos.cargarDatos()) {
@@ -229,14 +256,25 @@ public class InterfazGUI extends JFrame {
         return true;
     }
 
+    /**
+     * Ejecuta un análisis, cargando datos automáticamente si aún no existen.
+     *
+     * La variable {@code accion} es una lambda recibida como parámetro. Esto
+     * permite reutilizar este método para todos los botones: cada botón entrega
+     * una operación distinta, pero la validación de datos y la actualización
+     * del área de resultados se realizan una sola vez aquí.
+     */
     private void ejecutarAnalisis(java.util.function.Supplier<String> accion) {
+        // Si todavía no hay analizador, se intenta cargar la información primero.
         if (analizador == null) {
             if (!cargarDatos()) return;
         }
+        // get() ejecuta la lambda que recibió este método y devuelve su reporte.
         areaResultados.setText(accion.get());
         areaResultados.setCaretPosition(0);
     }
 
+    /** Punto de entrada: inicia la interfaz en el hilo de eventos de Swing. */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {

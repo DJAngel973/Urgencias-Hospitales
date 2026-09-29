@@ -4,12 +4,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Realiza todos los análisis epidemiológicos sobre los datos cargados.
+ * Realiza los análisis epidemiológicos sobre las atenciones cargadas.
+ *
+ * Cada método agrupa, cuenta, filtra u ordena la misma colección de datos y
+ * devuelve un reporte formateado para mostrarlo en la interfaz o en consola.
+ * La clase no cambia los archivos de entrada ni altera las atenciones.
  */
 public class AnalizadorEpidemiologico {
     private final LectorDatos datos;
     private final List<Atencion> atenciones;
 
+    /** Conecta el analizador con el lector que contiene los datos en memoria. */
     public AnalizadorEpidemiologico(LectorDatos datos) {
         this.datos = datos;
         this.atenciones = datos.getAtenciones();
@@ -18,6 +23,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 1. ENFERMEDADES MÁS FRECUENTES
     // ---------------------------------------------------------------
+    /** Cuenta códigos CIE-10 y devuelve los {@code topN} más repetidos. */
     public String enfermedadesMasFrecuentes(int topN) {
         Map<String, Long> conteo = atenciones.stream()
             .collect(Collectors.groupingBy(Atencion::getCie10, Collectors.counting()));
@@ -44,6 +50,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 2. DISTRIBUCIÓN POR TRIAGE
     // ---------------------------------------------------------------
+    /** Cuenta atenciones por nivel de triage y calcula su porcentaje del total. */
     public String distribucionPorTriage() {
         String[] etiquetas = {"Crítico", "Emergencia", "Urgente", "Menos urgente", "No urgente"};
         Map<Integer, Long> conteo = atenciones.stream()
@@ -67,6 +74,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 3. ENFERMEDADES MÁS FRECUENTES SEGÚN TRIAGE
     // ---------------------------------------------------------------
+    /** Obtiene las enfermedades más frecuentes dentro de cada nivel de triage. */
     public String enfermedadesPorTriage(int topPorNivel) {
         StringBuilder sb = new StringBuilder();
         sb.append("═══════════════════════════════════════════\n");
@@ -95,6 +103,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 4. DISTRIBUCIÓN POR RANGOS DE EDAD
     // ---------------------------------------------------------------
+    /** Clasifica una edad en uno de los rangos usados por los reportes. */
     private String rangoEdad(int edad) {
         if (edad <= 12) return "0 - 12 años";
         if (edad <= 17) return "13 - 17 años";
@@ -105,6 +114,7 @@ public class AnalizadorEpidemiologico {
         return "76+ años";
     }
 
+    /** Cuenta pacientes por rango de edad e identifica el grupo predominante. */
     public String distribucionPorEdad() {
         String[] orden = {"0 - 12 años", "13 - 17 años", "18 - 30 años",
                           "31 - 45 años", "46 - 60 años", "61 - 75 años", "76+ años"};
@@ -130,6 +140,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 5. ENFERMEDADES PREDOMINANTES POR GRUPO DE EDAD
     // ---------------------------------------------------------------
+    /** Encuentra las enfermedades más frecuentes para cada grupo de edad. */
     public String enfermedadesPorGrupoEdad(int topPorGrupo) {
         String[] orden = {"0 - 12 años", "13 - 17 años", "18 - 30 años",
                           "31 - 45 años", "46 - 60 años", "61 - 75 años", "76+ años"};
@@ -160,6 +171,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 6. DISTRIBUCIÓN POR SEXO + ENFERMEDADES POR SEXO
     // ---------------------------------------------------------------
+    /** Cuenta la distribución de atenciones entre los sexos registrados. */
     public String distribucionPorSexo() {
         Map<String, Long> conteo = atenciones.stream()
             .collect(Collectors.groupingBy(Atencion::getSexo, Collectors.counting()));
@@ -177,6 +189,7 @@ public class AnalizadorEpidemiologico {
         return sb.toString();
     }
 
+    /** Compara las enfermedades más frecuentes para cada sexo registrado. */
     public String enfermedadesPorSexo(int topN) {
         StringBuilder sb = new StringBuilder();
         sb.append("═══════════════════════════════════════════\n");
@@ -203,6 +216,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 7. ATENCIONES POR MES (tendencias temporales)
     // ---------------------------------------------------------------
+    /** Agrupa atenciones por mes y señala el mes con mayor cantidad. */
     public String atencionesPorMes() {
         Map<Month, Long> conteo = atenciones.stream()
             .collect(Collectors.groupingBy(a -> a.getFecha().getMonth(), Collectors.counting()));
@@ -231,6 +245,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 8. PROMEDIO DE EDAD
     // ---------------------------------------------------------------
+    /** Calcula edad promedio, mínima y máxima de las atenciones. */
     public String promedioEdad() {
         double promedio = atenciones.stream().mapToInt(Atencion::getEdad).average().orElse(0);
         int min = atenciones.stream().mapToInt(Atencion::getEdad).min().orElse(0);
@@ -247,6 +262,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 9. CASOS CRÍTICOS (Triage 1 y 2)
     // ---------------------------------------------------------------
+    /** Filtra triage 1 y 2, los ordena por fecha y resume sus diagnósticos. */
     public String casosCriticos() {
         List<Atencion> criticos = atenciones.stream()
             .filter(a -> a.getTriage() <= 2)
@@ -273,6 +289,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // 10. TENDENCIAS / PREVISIÓN DE MEDICAMENTOS
     // ---------------------------------------------------------------
+    /** Usa volumen de enfermedades y proporción de casos críticos como indicador de stock. */
     public String tendenciasMedicamentos() {
         // Top 3 enfermedades + su proporción de casos críticos
         Map<String, Long> conteo = atenciones.stream()
@@ -306,6 +323,7 @@ public class AnalizadorEpidemiologico {
     // ---------------------------------------------------------------
     // REPORTE COMPLETO (todos los análisis juntos)
     // ---------------------------------------------------------------
+    /** Concatena todos los análisis en un único reporte epidemiológico. */
     public String reporteCompleto() {
         return enfermedadesMasFrecuentes(10) + "\n\n" +
                distribucionPorTriage() + "\n\n" +
