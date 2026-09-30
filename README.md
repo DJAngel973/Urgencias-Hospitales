@@ -29,6 +29,11 @@ ProyectoHospital/
 │   └── urgencias.txt
 ├── src/
 │   ├── GenerateInfoFiles.java
+│   ├── InterfazGUI.java
+│   ├── LectorDatos.java
+│   ├── AnalizadorEpidemiologico.java
+│   ├── ConsultaPaciente.java
+│   ├── Atencion.java
 │   └── Main.java
 └── README.md
 ```
@@ -181,3 +186,86 @@ Por esta razón, los archivos se almacenan dentro de la carpeta `data` del proye
 ## Alcance de esta entrega
 
 Esta entrega se enfoca en la **creación, escritura y control básico de archivos de texto** mediante `GenerateInfoFiles`.
+
+## Interfaz gráfica agregada: `InterfazGUI`
+
+La clase `InterfazGUI` incorpora una interfaz visual construida con **Java Swing**. Su objetivo es permitir que el usuario genere, cargue, consulte y analice las atenciones hospitalarias sin utilizar directamente la consola. La ventana se organiza en cuatro pestañas y conserva los resultados en memoria mientras está abierta.
+
+### Flujo principal de uso
+
+1. Abrir la interfaz ejecutando `InterfazGUI`.
+2. Entrar en **Archivos** y pulsar **Generar Archivos**. Esto crea `data/cie10.csv` y `data/urgencias.txt`.
+3. Entrar en **Análisis Epidemiológico** y pulsar **Cargar Datos**. `LectorDatos` lee ambos archivos y prepara `AnalizadorEpidemiologico` y `ConsultaPaciente`.
+4. Elegir un análisis para mostrar sus resultados: enfermedades frecuentes, triage, edad, sexo, atenciones por mes, promedio de edad, casos críticos o tendencias de medicamentos.
+5. Usar **Consultar Paciente** para cargar la lista de nombres y consultar el historial individual.
+6. Usar **Reporte Completo** para generar un resumen combinado de los análisis.
+
+> También es posible pulsar directamente un análisis o generar el reporte: si los datos aún no están cargados, la interfaz intenta cargarlos automáticamente. Si los archivos no existen, muestra un mensaje indicando que deben generarse primero.
+
+### Pestañas y responsabilidades
+
+| Pestaña | Qué hace |
+|---|---|
+| **Archivos** | Ejecuta `GenerateInfoFiles` y genera los dos archivos de entrada dentro de `data/`. |
+| **Análisis Epidemiológico** | Carga los datos y ejecuta los métodos de `AnalizadorEpidemiologico`; los resultados aparecen en un área de texto. |
+| **Consultar Paciente** | Obtiene los nombres únicos mediante `ConsultaPaciente` y muestra el historial del paciente seleccionado o escrito. |
+| **Reporte Completo** | Combina los resultados epidemiológicos en un reporte general. |
+
+### Cómo funciona internamente
+
+- `InterfazGUI` extiende `JFrame`, por lo que representa la ventana principal, y utiliza `JTabbedPane` para organizar las funcionalidades.
+- Cada botón registra una acción con una **lambda** (`e -> ...`). El código de la lambda se ejecuta únicamente cuando el usuario hace clic.
+- `cargarDatos()` crea un `LectorDatos`, lee el diccionario CIE-10 y las atenciones, y luego construye los objetos de análisis y consulta. Devuelve `true` o `false` para impedir que una operación continúe si la lectura falló.
+- `ejecutarAnalisis(Supplier<String> accion)` centraliza la validación de datos y recibe como parámetro una operación pendiente. Así, todos los botones reutilizan la misma lógica y solo cambian el análisis que ejecutan.
+- El método `main` inicia la ventana con `SwingUtilities.invokeLater`, respetando el hilo de eventos de Swing.
+- La etiqueta inferior funciona como barra de estado: informa si los archivos fueron generados, cuántas atenciones se cargaron y cuántos códigos CIE-10 están disponibles.
+
+## Flujo de trabajo recomendado con Git
+
+Estos pasos evitan trabajar directamente sobre `main` y mantienen el proyecto local actualizado.
+
+### 1. Clonar el repositorio
+
+Desde la carpeta donde se guardará el proyecto:
+
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd ProyectoHospital
+```
+
+### 2. Crear una rama de trabajo
+
+Primero se actualiza la referencia de ramas y luego se crea una rama descriptiva:
+
+```bash
+git fetch origin
+git switch main
+git pull origin main
+git switch -c feature/documentacion-interfaz-gui
+```
+
+Usa nombres claros como `feature/...`, `fix/...` o `docs/...`. Cada integrante debe trabajar en su propia rama; `main` debe reservarse para cambios revisados y funcionales.
+
+### 3. Actualizar la rama con los cambios de `main`
+
+Antes de comenzar y periódicamente durante el trabajo, trae la versión más reciente:
+
+```bash
+git switch main
+git pull origin main
+git switch feature/documentacion-interfaz-gui
+git merge main
+```
+
+Si aparecen conflictos, hay que resolverlos, comprobar el archivo resultante y ejecutar el proyecto antes de continuar. Como alternativa, la rama puede actualizarse con `git rebase main` si el equipo trabaja con esa convención.
+
+### 4. Guardar y compartir el trabajo
+
+```bash
+git status
+git add README.md
+git commit -m "docs: documentar interfaz grafica y flujo de git"
+git push -u origin feature/documentacion-interfaz-gui
+```
+
+Después del `push`, se crea un Pull Request hacia `main`. El equipo revisa el cambio, verifica que la aplicación compile y solo entonces integra la rama. No se deben subir contraseñas, archivos temporales ni cambios no relacionados.
