@@ -1,0 +1,55 @@
+CONCLUSIONES DEL PROYECTO
+
+1. Lo aprendido durante el desarrollo
+
+Durante el desarrollo del proyecto aprendimos a aplicar los fundamentos de
+programación en Java mediante clases, objetos, métodos, listas, arreglos y
+estructuras de control. También practicamos la generación de datos
+aleatorios, el manejo de fechas y la lectura y escritura de archivos de texto.
+
+Aprendimos a separar las responsabilidades del programa. GenerateInfoFiles se
+encarga de generar los archivos base, LectorDatos los carga, las clases de
+análisis procesan la información y la interfaz gráfica permite interactuar con
+el sistema. Además, implementamos una interfaz con Java Swing, un menú de
+consola y la generación de un archivo CSV con resultados epidemiológicos.
+
+También fortalecimos el uso de Git para trabajar en equipo. Aprendimos a
+clonar el repositorio, actualizar la rama main, crear ramas de trabajo,
+realizar commits organizados y preparar cambios para un Pull Request.
+
+2. Posibles aplicaciones profesionales
+
+Las destrezas adquiridas pueden aplicarse en sistemas de información para
+hospitales, clínicas y centros de salud. Por ejemplo, un programa como este
+puede ayudar a registrar atenciones, consultar historiales, analizar
+patologías y generar reportes para apoyar la toma de decisiones.
+
+El manejo de archivos, el procesamiento de datos y la generación de reportes
+son conocimientos útiles en aplicaciones administrativas, sistemas de
+inventario, herramientas de análisis y soluciones empresariales. Por otra
+parte, el trabajo con interfaces gráficas y comandos de terminal permite
+crear programas adaptados a diferentes tipos de usuarios.
+
+El uso de Git también es importante en la vida profesional porque facilita el
+trabajo colaborativo, el seguimiento de cambios, la revisión del código y la
+organización de proyectos de software.
+
+3. Dificultades presentadas
+
+Una de las principales dificultades fue organizar el flujo entre los archivos
+de entrada, los datos cargados en memoria, los análisis y los archivos de
+salida. También fue necesario comprender cómo agrupar las atenciones por
+código CIE-10 y calcular estadísticas como porcentajes, distribución por
+triage, casos críticos y edad promedio.
+
+Otra dificultad consistió en integrar la interfaz gráfica con la lógica del
+programa sin modificar la responsabilidad original de GenerateInfoFiles.
+Además, fue necesario coordinar la generación y visualización de
+patologias.csv desde la interfaz, junto con las opciones de importación y
+descarga del menú CLI.
+
+Finalmente, el trabajo colaborativo requirió aprender a resolver cambios de
+forma ordenada mediante ramas, actualizaciones de main y commits claros. Estas
+dificultades ayudaron a comprender mejor la importancia de planificar la
+estructura del programa, dividir las responsabilidades y probar cada parte
+antes de integrarla.
