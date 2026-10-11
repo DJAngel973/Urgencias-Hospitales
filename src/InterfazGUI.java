@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 /**
@@ -107,6 +109,7 @@ public class InterfazGUI extends JFrame {
         JButton btnPromEdad = new JButton("📊 Promedio de edad");
         JButton btnCriticos = new JButton("⚠ Casos críticos");
         JButton btnTendencias = new JButton("💊 Tendencias / Medicamentos");
+        JButton btnPatologias = new JButton("📄 Generar patologias.csv");
 
         panelBotones.add(btnCargar);
         panelBotones.add(new JSeparator());
@@ -121,6 +124,8 @@ public class InterfazGUI extends JFrame {
         panelBotones.add(btnPromEdad);
         panelBotones.add(btnCriticos);
         panelBotones.add(btnTendencias);
+        panelBotones.add(new JSeparator());
+        panelBotones.add(btnPatologias);
 
         panel.add(panelBotones, BorderLayout.WEST);
 
@@ -147,6 +152,7 @@ public class InterfazGUI extends JFrame {
         btnPromEdad.addActionListener(e -> ejecutarAnalisis(() -> analizador.promedioEdad()));
         btnCriticos.addActionListener(e -> ejecutarAnalisis(() -> analizador.casosCriticos()));
         btnTendencias.addActionListener(e -> ejecutarAnalisis(() -> analizador.tendenciasMedicamentos()));
+        btnPatologias.addActionListener(e -> generarArchivoPatologias());
 
         return panel;
     }
@@ -254,6 +260,67 @@ public class InterfazGUI extends JFrame {
         estadoLabel.setText(" Datos cargados: " + datos.getAtenciones().size() + " atenciones, "
             + datos.getDiccionarioCIE10().size() + " códigos CIE-10.");
         return true;
+    }
+
+    /** Genera el archivo de salida usando los datos cargados en memoria. */
+    private void generarArchivoPatologias() {
+        if (analizador == null && !cargarDatos()) return;
+        try {
+            GeneradorPatologias generador = new GeneradorPatologias();
+            int cantidad = generador.generarArchivo(
+                datos.getAtenciones(), datos.getDiccionarioCIE10());
+            areaResultados.setText(leerArchivoPatologias());
+            areaResultados.setCaretPosition(0);
+            JOptionPane.showMessageDialog(this,
+                "✅ Archivo generado: patologias.csv\n"
+                    + "Patologías exportadas: " + cantidad,
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            estadoLabel.setText(" Salida generada: patologias.csv");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                "No se pudo generar patologias.csv: " + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /** Lee el CSV generado y lo presenta con el mismo formato de los reportes. */
+    private String leerArchivoPatologias() throws IOException {
+        StringBuilder contenido = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/patologias.csv"))) {
+            String linea;
+            if (reader.readLine() == null) return "No hay información para mostrar.";
+
+            contenido.append("══════════════════════════════════════════════════════════════════\n");
+            contenido.append("              ARCHIVO DE PATOLOGÍAS\n");
+            contenido.append("══════════════════════════════════════════════════════════════════\n\n");
+            contenido.append("Archivo: data/patologias.csv\n");
+            contenido.append("Resumen epidemiológico agrupado por código CIE-10\n\n");
+
+            int numero = 1;
+            while ((linea = reader.readLine()) != null) {
+                String[] campos = linea.split(";", -1);
+                if (campos.length < 14) continue;
+
+                contenido.append("──────────────────────────────────────────────────────────────────\n");
+                contenido.append(String.format("%2d. %s - %s%n", numero++, campos[0], campos[1]));
+                contenido.append("   Total de atenciones: ").append(campos[2])
+                    .append(" (").append(campos[3]).append("% del total)\n");
+                contenido.append("   Distribución por triage: ")
+                    .append("T1=").append(campos[4]).append(" | ")
+                    .append("T2=").append(campos[5]).append(" | ")
+                    .append("T3=").append(campos[6]).append(" | ")
+                    .append("T4=").append(campos[7]).append(" | ")
+                    .append("T5=").append(campos[8]).append("\n");
+                contenido.append("   Casos críticos: ").append(campos[9])
+                    .append(" (").append(campos[10]).append("%)\n");
+                contenido.append("   Sexo: femenino=").append(campos[11])
+                    .append(" | masculino=").append(campos[12]).append("\n");
+                contenido.append("   Edad promedio: ").append(campos[13]).append(" años\n");
+            }
+        }
+        return contenido.length() == 0
+            ? "No se encontraron patologías en el archivo."
+            : contenido.toString();
     }
 
     /**
