@@ -26,9 +26,11 @@ Esta primera entrega se concentra en el diseño e implementación de la clase `G
 ProyectoHospital/
 ├── data/
 │   ├── cie10.csv
+│   ├── patologias.csv
 │   └── urgencias.txt
 ├── src/
 │   ├── GenerateInfoFiles.java
+│   ├── GeneradorPatologias.java
 │   ├── InterfazGUI.java
 │   ├── LectorDatos.java
 │   ├── AnalizadorEpidemiologico.java
@@ -187,6 +189,42 @@ Por esta razón, los archivos se almacenan dentro de la carpeta `data` del proye
 
 Esta entrega se enfoca en la **creación, escritura y control básico de archivos de texto** mediante `GenerateInfoFiles`.
 
+## Archivo de salida `patologias.csv`
+
+El sistema también genera un resumen epidemiológico en `data/patologias.csv`. Este archivo se construye a partir de las atenciones cargadas desde `urgencias.txt` y del diccionario de `cie10.csv`.
+
+Utiliza punto y coma (`;`) como separador y contiene una fila por cada código CIE-10 encontrado:
+
+```text
+CIE10;PATOLOGIA;TOTAL_ATENCIONES;PORCENTAJE_TOTAL;TRIAGE_1;TRIAGE_2;TRIAGE_3;TRIAGE_4;TRIAGE_5;CASOS_CRITICOS;PORCENTAJE_CRITICOS;FEMENINO;MASCULINO;EDAD_PROMEDIO
+```
+
+| Columna | Información |
+|---|---|
+| `CIE10` | Código de la patología. |
+| `PATOLOGIA` | Nombre asociado al código en el diccionario CIE-10. |
+| `TOTAL_ATENCIONES` | Número de atenciones para esa patología. |
+| `PORCENTAJE_TOTAL` | Porcentaje frente al total de atenciones. |
+| `TRIAGE_1` a `TRIAGE_5` | Cantidad de atenciones de cada nivel de triage. |
+| `CASOS_CRITICOS` | Suma de los casos con triage 1 y 2. |
+| `PORCENTAJE_CRITICOS` | Porcentaje de casos críticos de esa patología. |
+| `FEMENINO` y `MASCULINO` | Cantidad de atenciones según el sexo registrado. |
+| `EDAD_PROMEDIO` | Edad promedio para esa patología. |
+
+### Clase `GeneradorPatologias`
+
+`GeneradorPatologias` se encarga de construir la salida y no tiene método `main`, porque la aplicación conserva únicamente `Main` e `InterfazGUI` como puntos de entrada.
+
+Su proceso es:
+
+1. Recibir las atenciones y el diccionario CIE-10 ya cargados.
+2. Agrupar las atenciones por código de enfermedad.
+3. Acumular conteos de triage, sexo y edades.
+4. Calcular porcentajes, casos críticos y edad promedio.
+5. Crear o reemplazar `data/patologias.csv` usando `BufferedWriter`.
+
+`GenerateInfoFiles` no participa en este proceso y permanece dedicada a generar `cie10.csv` y `urgencias.txt`.
+
 ## Interfaz gráfica agregada: `InterfazGUI`
 
 La clase `InterfazGUI` incorpora una interfaz visual construida con **Java Swing**. Su objetivo es permitir que el usuario genere, cargue, consulte y analice las atenciones hospitalarias sin utilizar directamente la consola. La ventana se organiza en cuatro pestañas y conserva los resultados en memoria mientras está abierta.
@@ -219,6 +257,30 @@ La clase `InterfazGUI` incorpora una interfaz visual construida con **Java Swing
 - `ejecutarAnalisis(Supplier<String> accion)` centraliza la validación de datos y recibe como parámetro una operación pendiente. Así, todos los botones reutilizan la misma lógica y solo cambian el análisis que ejecutan.
 - El método `main` inicia la ventana con `SwingUtilities.invokeLater`, respetando el hilo de eventos de Swing.
 - La etiqueta inferior funciona como barra de estado: informa si los archivos fueron generados, cuántas atenciones se cargaron y cuántos códigos CIE-10 están disponibles.
+
+Al pulsar **Generar patologias.csv**, la interfaz crea el archivo y muestra una vista legible del resumen en el área de resultados. La vista presenta un encabezado y un bloque por patología, en lugar de mostrar el CSV completo en una sola línea.
+
+## Menú de consola (CLI)
+
+La clase `Main` también permite trabajar desde la terminal. La opción inicial permite escoger entre la interfaz gráfica y el modo consola.
+
+| Opción | Función |
+|---|---|
+| **1. Generar Archivos** | Crea `data/` y genera `cie10.csv` y `urgencias.txt` mediante `GenerateInfoFiles`. |
+| **2. Importar/Ver Base** | Lee la base con `LectorDatos` y muestra cantidades, el diccionario y las primeras atenciones. |
+| **3. Importar/Ver Salida** | Lee y muestra el contenido de `data/patologias.csv`. |
+| **4. Descargar Salida** | Copia `data/patologias.csv` a una ruta indicada; con Enter usa `descargas/patologias.csv`. |
+| **5. Salir** | Finaliza el menú de consola. |
+
+### Flujo recomendado en CLI
+
+1. Seleccionar **Generar Archivos** para crear los datos base.
+2. Generar `patologias.csv` desde el botón correspondiente de la interfaz gráfica.
+3. Seleccionar **Importar/Ver Base** para comprobar los archivos de entrada.
+4. Seleccionar **Importar/Ver Salida** para consultar el resumen epidemiológico.
+5. Seleccionar **Descargar Salida** para copiar el archivo a otra ubicación.
+
+Si `patologias.csv` no existe, las opciones 3 y 4 informan que primero debe generarse desde la interfaz gráfica.
 
 ## Flujo de trabajo recomendado con Git
 
